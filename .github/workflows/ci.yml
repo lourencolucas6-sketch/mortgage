@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "test/**"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure (CMake)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compile
+        run: cmake --build build --parallel
+
+      - name: Run Google Test
+        run: ctest --test-dir build --output-on-failure --output-junit test-report.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: build/test-report.xml
